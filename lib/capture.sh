@@ -21,6 +21,20 @@ if [ "$DL_CAPTURE_AUDIO" = "1" ]; then
   APID=$!
 fi
 
+# System/meeting audio via ScreenCaptureKit (no output reroute). Gated to meeting apps.
+SPID=""
+if [ "$DL_CAPTURE_SYSTEM" = "1" ] && [ -x "$LENS_AUDIO" ]; then
+  run_sys=1
+  if [ -n "$DL_SYSTEM_AUDIO_WHEN" ]; then
+    run_sys=0; OLDIFS=$IFS; IFS=,
+    for app in $DL_SYSTEM_AUDIO_WHEN; do
+      pgrep -i -f "$app" >/dev/null 2>&1 && { run_sys=1; break; }
+    done
+    IFS=$OLDIFS
+  fi
+  [ "$run_sys" = "1" ] && { "$LENS_AUDIO" "$WDIR/sysaudio.wav" "$DUR" 2>/dev/null & SPID=$!; }
+fi
+
 START=$(date +%s); last_shot=-999
 while :; do
   now=$(date +%s); el=$((now-START))
@@ -39,4 +53,5 @@ while :; do
   sleep "$DL_CTX_INTERVAL"
 done
 [ -n "$APID" ] && wait "$APID" 2>/dev/null
+[ -n "$SPID" ] && wait "$SPID" 2>/dev/null
 echo "$WIN"

@@ -21,13 +21,23 @@ WDIR="$RAW/$WIN"; OUT="$BUFFER/${WIN}.md"
   done
   shopt -u nullglob
   echo
-  echo "## Audio transcript (whisper.cpp, redacted)"
+  echo "## Your mic transcript (whisper.cpp, redacted)"
   if [ -f "$WDIR/audio.wav" ] && [ -n "$DL_WHISPER_BIN" ]; then
     "$DL_WHISPER_BIN" -m "$DL_WHISPER_MODEL" -f "$WDIR/audio.wav" -nt -otxt -of "$WDIR/audio" >/dev/null 2>&1
     if [ -s "$WDIR/audio.txt" ]; then lens_redact < "$WDIR/audio.txt"
     else echo "_(silence / no speech detected)_"; fi
   else
-    echo "_(no audio captured)_"
+    echo "_(no mic audio captured)_"
+  fi
+  echo
+  echo "## Meeting / system audio transcript (others — ScreenCaptureKit, redacted)"
+  if [ -f "$WDIR/sysaudio.wav" ] && [ -n "$DL_WHISPER_BIN" ]; then
+    "$DL_FFMPEG" -nostdin -loglevel error -i "$WDIR/sysaudio.wav" -ac 1 -ar 16000 -sample_fmt s16 -y "$WDIR/sys16.wav" 2>/dev/null
+    "$DL_WHISPER_BIN" -m "$DL_WHISPER_MODEL" -f "$WDIR/sys16.wav" -nt -otxt -of "$WDIR/sys16" >/dev/null 2>&1
+    if [ -s "$WDIR/sys16.txt" ]; then lens_redact < "$WDIR/sys16.txt"
+    else echo "_(no system speech detected)_"; fi
+  else
+    echo "_(no system audio this window — not in a meeting)_"
   fi
 } > "$OUT"
 

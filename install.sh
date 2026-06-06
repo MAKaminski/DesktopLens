@@ -16,7 +16,8 @@ command -v whisper-cli >/dev/null || brew install whisper-cpp
 
 echo "==> Compiling native helpers (OCR + screenshot)"
 swiftc -O -o bin/lens-ocr  lib/lens-ocr.swift  -framework Vision -framework AppKit
-swiftc -O -o bin/lens-shot lib/lens-shot.swift -framework ScreenCaptureKit -framework AppKit
+swiftc -O -o bin/lens-shot  lib/lens-shot.swift  -framework ScreenCaptureKit -framework AppKit
+swiftc -O -o bin/lens-audio lib/lens-audio.swift -framework ScreenCaptureKit -framework AVFoundation -framework CoreMedia
 chmod +x bin/desktoplens lib/*.sh
 
 echo "==> Config"

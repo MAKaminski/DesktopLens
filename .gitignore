@@ -4,6 +4,7 @@ config.sh
 # Compiled native helpers (built by install.sh)
 bin/lens-ocr
 bin/lens-shot
+bin/lens-audio
 
 # Runtime data — raw media, text buffers, digests, state, logs, models
 data/

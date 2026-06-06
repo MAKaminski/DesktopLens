@@ -25,11 +25,14 @@ fi
 : "${DL_FFMPEG:=$(command -v ffmpeg)}"
 [ -z "$DL_FFMPEG" ] && [ -x /opt/homebrew/bin/ffmpeg ] && DL_FFMPEG=/opt/homebrew/bin/ffmpeg
 export DL_FFMPEG
+: "${DL_CAPTURE_SYSTEM:=1}"        # capture system/meeting audio via ScreenCaptureKit (no output reroute)
+: "${DL_SYSTEM_AUDIO_WHEN:=Microsoft Teams,zoom.us,CptHost,Webex,Google Meet}"  # only capture system audio when one of these is running; empty = always
 : "${DL_SUMMARIZER_CMD:=}"
 
 export RAW="$DL_DATA_DIR/raw" BUFFER="$DL_DATA_DIR/buffer" DIGESTS="$DL_DATA_DIR/digests"
 export STATE="$DL_DATA_DIR/state" LOGS="$DL_DATA_DIR/logs"
 export OCR_BIN="$DL_HOME/bin/lens-ocr"
+export LENS_AUDIO="$DL_HOME/bin/lens-audio"
 export BLOCKLIST_FILE="$STATE/blocklist.txt" PAUSE_FLAG="$STATE/PAUSED"
 mkdir -p "$RAW" "$BUFFER" "$DIGESTS" "$STATE" "$LOGS"
 

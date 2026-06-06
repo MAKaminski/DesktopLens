@@ -62,6 +62,8 @@ Copy `config.example.sh` → `config.sh` (the installer does this) and edit:
 | `DL_CAPTURE_AUDIO` | `1` | `0` = screen + app context only |
 | `DL_AUDIO_DEVICE` | `:1` | ffmpeg avfoundation audio index |
 | `DL_WHISPER_MODEL` | `…/ggml-base.en.bin` | whisper.cpp model path |
+| `DL_CAPTURE_SYSTEM` | `1` | capture meeting/system audio via ScreenCaptureKit (no reroute) |
+| `DL_SYSTEM_AUDIO_WHEN` | Teams,Zoom,Webex,Meet | only capture system audio when one of these apps runs; empty = always |
 | `DL_SUMMARIZER_CMD` | _(empty)_ | optional: command that receives the buffer path |
 
 ## The summarizer is yours (bring-your-own)
@@ -86,12 +88,18 @@ dependency**. Pick a path:
 - **Audio capture and screen recording may be subject to consent laws and
   workplace policy.** You are responsible for using DesktopLens lawfully where you are.
 
-## System-audio (far side of calls)
+## Meeting / system audio (the far side of calls)
 
-The default captures the **microphone** only. To also capture system audio (the
-other side of meetings), install a virtual loopback such as
-[BlackHole](https://github.com/ExistentialAudio/BlackHole), create an Aggregate
-Device, and point `DL_AUDIO_DEVICE` at it.
+DesktopLens captures the other side of meetings with **ScreenCaptureKit** — a
+digital tap of system audio that needs **no virtual device, no output rerouting,
+and never changes your volume**. Your mic and the system audio are captured
+separately and transcribed as labeled sections.
+
+It's gated to meeting apps so it doesn't transcribe your music: `DL_SYSTEM_AUDIO_WHEN`
+lists the apps that trigger it (default: Teams, Zoom, Webex, Meet); set it empty to
+always capture. Toggle the whole feature with `DL_CAPTURE_SYSTEM`. (BlackHole is
+**not** required — and rerouting your default output to a Multi-Output device is
+explicitly avoided, since macOS can't volume-control one.)
 
 ## Roadmap
 
