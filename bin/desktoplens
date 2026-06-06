@@ -1,0 +1,53 @@
+#!/bin/bash
+# DesktopLens CLI. Run `desktoplens help` for usage.
+set -uo pipefail
+DL_HOME="$(cd "$(dirname "$0")/.." && pwd)"
+source "$DL_HOME/lib/common.sh"
+cmd="${1:-help}"; shift || true
+
+case "$cmd" in
+  test)
+    # 30s window with a tighter screenshot cadence so the test captures a few frames.
+    DL_SHOT_INTERVAL=10 exec "$DL_HOME/lib/run.sh" once 30 ;;
+  capture) exec "$DL_HOME/lib/capture.sh" "${1:-$DL_WINDOW_SECONDS}" ;;
+  process) exec "$DL_HOME/lib/process.sh" "${1:?usage: desktoplens process <win>}" ;;
+  run)     exec "$DL_HOME/lib/run.sh" loop "${1:-$DL_WINDOW_SECONDS}" ;;
+  pause)   touch "$PAUSE_FLAG"; echo "paused — capture suppressed until resume" ;;
+  resume)  rm -f "$PAUSE_FLAG"; echo "resumed" ;;
+  status)
+    echo "data dir : $DL_DATA_DIR"
+    echo "paused   : $([ -f "$PAUSE_FLAG" ] && echo yes || echo no)"
+    echo "buffers  : $(ls -1 "$BUFFER"/*.md 2>/dev/null | wc -l | tr -d ' ') pending"
+    echo "frontmost: $(lens_front_name) ($(lens_front_bundle))"
+    echo "audio    : $([ "$DL_CAPTURE_AUDIO" = 1 ] && echo "on ($DL_AUDIO_DEVICE)" || echo off)"
+    echo "model    : $DL_WHISPER_MODEL" ;;
+  block)   echo "${1:?usage: desktoplens block <bundle.id>}" >> "$BLOCKLIST_FILE"; echo "blocked $1" ;;
+  blocklist) cat "$BLOCKLIST_FILE" ;;
+  digest)
+    # Run the configured summarizer over the newest buffer (bring-your-own).
+    [ -z "$DL_SUMMARIZER_CMD" ] && { echo "no DL_SUMMARIZER_CMD set in config.sh"; exit 1; }
+    newest=$(ls -t "$BUFFER"/*.md 2>/dev/null | head -1)
+    [ -z "$newest" ] && { echo "no buffers to digest"; exit 0; }
+    eval "$DL_SUMMARIZER_CMD \"$newest\"" ;;
+  install-agent)   exec "$DL_HOME/lib/install-agent.sh" install ;;
+  uninstall-agent) exec "$DL_HOME/lib/install-agent.sh" uninstall ;;
+  help|--help|-h|*)
+    cat <<EOF
+DesktopLens — capture your screen+mic, reduce to text on-device, delete the media.
+
+  desktoplens test            30-second end-to-end proof (capture→text→delete)
+  desktoplens run [secs]       run capture loop in foreground (default window: ${DL_WINDOW_SECONDS}s)
+  desktoplens capture [secs]   capture one window only
+  desktoplens process <win>    process one captured window into the text buffer
+  desktoplens pause | resume   suppress / resume all capture
+  desktoplens status           show config + state
+  desktoplens block <id>       add a frontmost-app bundle id to the blocklist
+  desktoplens blocklist        print the blocklist
+  desktoplens digest           run your configured summarizer over the newest buffer
+  desktoplens install-agent    install the always-on LaunchAgent
+  desktoplens uninstall-agent  remove the LaunchAgent
+
+Config: $DL_HOME/config.sh   Data: $DL_DATA_DIR
+EOF
+    ;;
+esac

@@ -1,0 +1,17 @@
+# User config (may contain machine-specific paths / future keys)
+config.sh
+
+# Compiled OCR binary (built by install.sh)
+bin/lens-ocr
+
+# Runtime data — raw media, text buffers, digests, state, logs, models
+data/
+*.wav
+*.jpg
+*.png
+*.log
+models/
+ggml-*.bin
+
+# macOS
+.DS_Store
