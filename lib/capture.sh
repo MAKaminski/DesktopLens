@@ -16,7 +16,7 @@ fi
 
 APID=""
 if [ "$DL_CAPTURE_AUDIO" = "1" ]; then
-  ffmpeg -nostdin -loglevel error -f avfoundation -i "$DL_AUDIO_DEVICE" \
+  "$DL_FFMPEG" -nostdin -loglevel error -f avfoundation -i "$DL_AUDIO_DEVICE" \
          -t "$DUR" -ac 1 -ar 16000 -y "$WDIR/audio.wav" &
   APID=$!
 fi
@@ -28,7 +28,10 @@ while :; do
   if ! lens_is_blocked; then
     printf '%s | %s | %s\n' "$(date +%H:%M:%S)" "$(lens_front_name)" "$(lens_front_bundle)" >> "$WDIR/context.log"
     if [ $((el - last_shot)) -ge "$DL_SHOT_INTERVAL" ]; then
-      screencapture -x -t jpg "$WDIR/shot_${el}.jpg" 2>/dev/null && last_shot=$el
+      # Prefer the native grantable helper; fall back to screencapture.
+      { [ -x "$DL_HOME/bin/lens-shot" ] && "$DL_HOME/bin/lens-shot" "$WDIR/shot_${el}.jpg" 2>/dev/null; } \
+        || screencapture -x -t jpg "$WDIR/shot_${el}.jpg" 2>/dev/null
+      [ -s "$WDIR/shot_${el}.jpg" ] && last_shot=$el
     fi
   else
     printf '%s | [BLOCKED:%s] | suppressed\n' "$(date +%H:%M:%S)" "$(lens_front_name)" >> "$WDIR/context.log"

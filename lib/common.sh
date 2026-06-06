@@ -3,6 +3,10 @@
 DL_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export DL_HOME
 
+# launchd runs with a bare PATH — ensure Homebrew + system tools are findable
+# BEFORE config (which may call `command -v`).
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+
 # Load user config, falling back to the committed example.
 if   [ -f "$DL_HOME/config.sh" ];        then source "$DL_HOME/config.sh"
 elif [ -f "$DL_HOME/config.example.sh" ]; then source "$DL_HOME/config.example.sh"
@@ -16,7 +20,11 @@ fi
 : "${DL_CAPTURE_AUDIO:=1}"
 : "${DL_AUDIO_DEVICE:=:1}"
 : "${DL_WHISPER_BIN:=$(command -v whisper-cli)}"
+[ -z "$DL_WHISPER_BIN" ] && [ -x /opt/homebrew/bin/whisper-cli ] && DL_WHISPER_BIN=/opt/homebrew/bin/whisper-cli
 : "${DL_WHISPER_MODEL:=$DL_DATA_DIR/models/ggml-base.en.bin}"
+: "${DL_FFMPEG:=$(command -v ffmpeg)}"
+[ -z "$DL_FFMPEG" ] && [ -x /opt/homebrew/bin/ffmpeg ] && DL_FFMPEG=/opt/homebrew/bin/ffmpeg
+export DL_FFMPEG
 : "${DL_SUMMARIZER_CMD:=}"
 
 export RAW="$DL_DATA_DIR/raw" BUFFER="$DL_DATA_DIR/buffer" DIGESTS="$DL_DATA_DIR/digests"

@@ -14,8 +14,9 @@ fi
 command -v ffmpeg      >/dev/null || brew install ffmpeg
 command -v whisper-cli >/dev/null || brew install whisper-cpp
 
-echo "==> Compiling Vision OCR helper"
-swiftc -O -o bin/lens-ocr lib/lens-ocr.swift -framework Vision -framework AppKit
+echo "==> Compiling native helpers (OCR + screenshot)"
+swiftc -O -o bin/lens-ocr  lib/lens-ocr.swift  -framework Vision -framework AppKit
+swiftc -O -o bin/lens-shot lib/lens-shot.swift -framework ScreenCaptureKit -framework AppKit
 chmod +x bin/desktoplens lib/*.sh
 
 echo "==> Config"
